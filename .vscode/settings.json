@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "ostream": "cpp",
+    "ios": "cpp",
+    "complex": "cpp",
+    "string": "cpp",
+    "iosfwd": "cpp"
+  },
+  "cmake.configureOnOpen": true
+}

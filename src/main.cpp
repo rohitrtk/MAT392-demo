@@ -1,3 +1,7 @@
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -15,10 +19,9 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Camera.h"
-
 #include "Model.h"
 
-// #include "Util.h"
+//#include "Util.h"
 
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
@@ -122,6 +125,8 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 bool mouseLocked = false;
+bool wireFrame = false;
+bool useSkybox = true;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -130,6 +135,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void mouse_callback(GLFWwindow* window, double xPosIn, double yPosIn)
 {
+  if (!mouseLocked) return;
+
   float xPos = static_cast<float>(xPosIn);
   float yPos = static_cast<float>(yPosIn);
 
@@ -154,13 +161,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
   // Close
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
-  // Mouse lock
-  if (key == GLFW_KEY_M && action == GLFW_PRESS)
-  {
-    mouseLocked = !mouseLocked;
-    glfwSetInputMode(window, GLFW_CURSOR, mouseLocked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_HIDDEN);
-    std::cout << "Set mouse lock to " << mouseLocked << std::endl;
-  }
+  // Mouse locked
+  if (key == GLFW_KEY_M && action == GLFW_PRESS) mouseLocked = !mouseLocked;
+
+  // Wireframe
+  if (key == GLFW_KEY_N && action == GLFW_PRESS) wireFrame = !wireFrame;
+
+  // Skybox
+  if (key == GLFW_KEY_B && action == GLFW_PRESS) useSkybox = !useSkybox;
 }
 
 void processInput(GLFWwindow* window)
@@ -219,32 +227,11 @@ int main(int argc, char** argv)
   Shader airplaneShader("./../shaders/airplane/vertex.glsl", "./../shaders/airplane/fragment.glsl");
   Model::Model airplaneModel("./../res/models/airplane/11805_airplane_v2_L2.obj");
 
-  /*
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+  glm::vec3 airplanePosition(0.0f, 0.0f, 0.0f);
+  glm::vec3 airplaneRotation(0.0f, 0.0f, 0.0f);
+  glm::vec3 airplaneScale(0.001f, 0.001f, 0.001f);
 
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(0));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), reinterpret_cast<void*>(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    Shader shader("./../shaders/vertex.glsl", "./../shaders/fragment.glsl");
-
-    // Wall texture
-    Texture texture("./../res/wall.jpg");
-
-    texture.bind();
-    shader.use();
-    shader.setInt("myTexture", 0);
-    */
-
-    // Skybox
+  // Skybox
   Shader skyboxShader("./../shaders/skybox/vertex.glsl", "./../shaders/skybox/fragment.glsl");
   unsigned int skyboxVAO, skyboxVBO;
   glGenVertexArrays(1, &skyboxVAO);
@@ -295,8 +282,13 @@ int main(int argc, char** argv)
   skyboxShader.use();
   skyboxShader.setInt("skybox", 0);
 
-  // Wireframe
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  std::cout << "Initializing imgui!" << std::endl;
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  //ImGuiIO& io = ImGui::GetIO();
+  ImGui::StyleColorsDark();
+  ImGui_ImplGlfw_InitForOpenGL(window, true);
+  ImGui_ImplOpenGL3_Init("#version 330 core");
 
   std::cout << "Starting Program!" << std::endl;
   // Main Loop
@@ -308,8 +300,15 @@ int main(int argc, char** argv)
 
     processInput(window);
 
+    glfwSetInputMode(window, GLFW_CURSOR, mouseLocked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_HIDDEN);
+    glPolygonMode(GL_FRONT_AND_BACK, wireFrame ? GL_LINE : GL_FILL);
+
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     /* Creation of model, view, and projection matricies per frame */
 
@@ -328,27 +327,50 @@ int main(int argc, char** argv)
     airplaneShader.setMat4("projection", projection);
     airplaneShader.setMat4("view", view);
 
-    model = glm::translate(model, glm::vec3(0.0f, 1.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(0.001, 0.001, 0.001));
-    model = glm::rotate(model, glm::radians(90.f), glm::vec3(1.0f, 1.0f, 0.0f));
+    model = glm::translate(model, airplanePosition);
+    model = glm::scale(model, airplaneScale);
+    model = glm::rotate(model, glm::radians(airplaneRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(airplaneRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(airplaneRotation.z), glm::vec3(1.0f, 0.0f, 1.0f));
     airplaneShader.setMat4("model", model);
     airplaneModel.draw(airplaneShader);
 
-    glDepthFunc(GL_LEQUAL);
-    skyboxShader.use();
-    view = glm::mat4(glm::mat3(view));
-    skyboxShader.setMat4("view", view);
-    skyboxShader.setMat4("projection", projection);
-    glBindVertexArray(skyboxVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-    glDepthFunc(GL_LESS);
+    if (useSkybox)
+    {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glDepthFunc(GL_LEQUAL);
+      skyboxShader.use();
+      view = glm::mat4(glm::mat3(view));
+      skyboxShader.setMat4("view", view);
+      skyboxShader.setMat4("projection", projection);
+      glBindVertexArray(skyboxVAO);
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_CUBE_MAP, skybox);
+      glDrawArrays(GL_TRIANGLES, 0, 36);
+      glBindVertexArray(0);
+      glDepthFunc(GL_LESS);
+    }
+
+    ImGui::Begin("Menu :)");
+    ImGui::Checkbox("Mouse Lock (M)", &mouseLocked);
+    ImGui::Checkbox("Wireframe (N)", &wireFrame);
+    ImGui::Checkbox("Skybox (B)", &useSkybox);
+    ImGui::SliderFloat3("Scale", reinterpret_cast<float*>(&airplaneScale), 0.001f, 0.01f);
+    ImGui::SliderFloat3("Translate", reinterpret_cast<float*>(&airplanePosition), -1.0f, 1.0f);
+    ImGui::SliderFloat3("Rotate", reinterpret_cast<float*>(&airplaneRotation), 0.0f, 359.0f);
+
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
 
   glDeleteVertexArrays(1, &skyboxVAO);
   glDeleteBuffers(1, &skyboxVBO);
