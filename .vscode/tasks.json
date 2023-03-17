@@ -1,0 +1,49 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: clang++ build active file",
+			"command": "/usr/bin/clang++",
+			"args": [
+				"-std=c++17",
+				"-fcolor-diagnostics",
+				"-fansi-escape-codes",
+				"-Wall",
+				"-g",
+				"-I${workspaceFolder}/deps/include",
+				"-I${workspaceFolder}/include",
+				"-I${workspaceFolder}/include/imgui",
+				"-L${workspaceFolder}/deps/lib",
+				"${workspaceFolder}/src/*.cpp",
+				"${workspaceFolder}/src/imgui/*.cpp",
+				"${workspaceFolder}/glad.c",
+				"${workspaceFolder}/deps/lib/libglfw.3.3.dylib",
+				"${workspaceFolder}/deps/lib/libassimp.5.2.4.dylib",
+				"-o",
+				"${workspaceFolder}/out",
+				"-framework",
+				"OpenGL",
+				"-framework",
+				"Cocoa",
+				"-framework",
+				"IOKit",
+				"-framework",
+				"CoreVideo",
+				"-framework",
+				"CoreFoundation"
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compiler: /usr/bin/clang++"
+		}
+	]
+}
