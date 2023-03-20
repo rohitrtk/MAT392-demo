@@ -4,7 +4,8 @@
     "ios": "cpp",
     "complex": "cpp",
     "string": "cpp",
-    "iosfwd": "cpp"
+    "iosfwd": "cpp",
+    "string_view": "cpp"
   },
   "cmake.configureOnOpen": true
 }

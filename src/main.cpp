@@ -21,8 +21,6 @@
 #include "Camera.h"
 #include "Model.h"
 
-//#include "Util.h"
-
 const int WINDOW_WIDTH = 800;
 const int WINDOW_HEIGHT = 600;
 const std::string WINDOW_TITLE = "MAT392 - Mathematics in Computer Graphics Demo";
@@ -32,50 +30,6 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = WINDOW_WIDTH * 0.5f;
 float lastY = WINDOW_HEIGHT * 0.5f;
 bool firstMouse = false;
-
-float verticies[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
 
 float skyboxVertices[] = {
   -1.0f,  1.0f, -1.0f,
@@ -123,53 +77,15 @@ float skyboxVertices[] = {
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+unsigned int frameCount = 0;
 
 bool mouseLocked = false;
 bool wireFrame = false;
 bool useSkybox = true;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-  glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow* window, double xPosIn, double yPosIn)
-{
-  if (!mouseLocked) return;
-
-  float xPos = static_cast<float>(xPosIn);
-  float yPos = static_cast<float>(yPosIn);
-
-  if (firstMouse)
-  {
-    lastX = xPos;
-    lastY = yPos;
-    firstMouse = false;
-  }
-
-  float xOffset = xPos - lastX;
-  float yOffset = lastY - yPos;
-
-  lastX = xPos;
-  lastY = yPos;
-
-  camera.processMouseMovement(xOffset, yOffset);
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-  // Close
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
-
-  // Mouse locked
-  if (key == GLFW_KEY_M && action == GLFW_PRESS) mouseLocked = !mouseLocked;
-
-  // Wireframe
-  if (key == GLFW_KEY_N && action == GLFW_PRESS) wireFrame = !wireFrame;
-
-  // Skybox
-  if (key == GLFW_KEY_B && action == GLFW_PRESS) useSkybox = !useSkybox;
-}
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xPosIn, double yPosIn);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 void processInput(GLFWwindow* window)
 {
@@ -226,10 +142,15 @@ int main(int argc, char** argv)
   // Model from https://free3d.com/3d-model/airplane-v2--549103.html
   Shader airplaneShader("./../shaders/airplane/vertex.glsl", "./../shaders/airplane/fragment.glsl");
   Model::Model airplaneModel("./../res/models/airplane/11805_airplane_v2_L2.obj");
+  //Model::Model airplaneModel("./../res//models/tree-high/tree01.obj");
 
   glm::vec3 airplanePosition(0.0f, 0.0f, 0.0f);
   glm::vec3 airplaneRotation(0.0f, 0.0f, 0.0f);
   glm::vec3 airplaneScale(0.001f, 0.001f, 0.001f);
+  //glm::vec3 airplaneScale(.1f, .1f, .1f);
+
+  float ambientLight = 0.5;
+  glm::vec3 ambientColour(1.0f, 1.0f, 1.0f);
 
   // Skybox
   Shader skyboxShader("./../shaders/skybox/vertex.glsl", "./../shaders/skybox/fragment.glsl");
@@ -291,11 +212,21 @@ int main(int argc, char** argv)
   ImGui_ImplOpenGL3_Init("#version 330 core");
 
   std::cout << "Starting Program!" << std::endl;
+  int numFrames = 0;
+  double timer = 0.0;
   // Main Loop
   while (!glfwWindowShouldClose(window))
   {
+    numFrames++;
     float currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
+
+    if (currentFrame - timer >= 1.0)
+    {
+      frameCount = static_cast<unsigned int>(1000.0 / static_cast<double>(numFrames));
+      numFrames = 0;
+      timer += 1.0;
+    }
     lastFrame = currentFrame;
 
     processInput(window);
@@ -304,15 +235,12 @@ int main(int argc, char** argv)
     glPolygonMode(GL_FRONT_AND_BACK, wireFrame ? GL_LINE : GL_FILL);
 
     glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+    //glClearColor(1.f, 1.f, 1.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 
     /* Creation of model, view, and projection matricies per frame */
 
-    /* Model Matrix */
+    /* Model/Transformation Matrix */
     glm::mat4 model = glm::mat4(1.0f);
 
     /* View Matrix */
@@ -335,6 +263,9 @@ int main(int argc, char** argv)
     airplaneShader.setMat4("model", model);
     airplaneModel.draw(airplaneShader);
 
+    airplaneShader.setFloat("ambientStrength", ambientLight);
+    airplaneShader.setVec3("ambientColour", ambientColour);
+
     if (useSkybox)
     {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -349,15 +280,31 @@ int main(int argc, char** argv)
       glDrawArrays(GL_TRIANGLES, 0, 36);
       glBindVertexArray(0);
       glDepthFunc(GL_LESS);
+
+      skyboxShader.setFloat("ambientStrength", ambientLight);
     }
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // Menu
     ImGui::Begin("Menu :)");
+    ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%dms/frame", frameCount);
+
+    // Keybinds
     ImGui::Checkbox("Mouse Lock (M)", &mouseLocked);
     ImGui::Checkbox("Wireframe (N)", &wireFrame);
     ImGui::Checkbox("Skybox (B)", &useSkybox);
+
+    // Airplane transform
     ImGui::SliderFloat3("Scale", reinterpret_cast<float*>(&airplaneScale), 0.001f, 0.01f);
     ImGui::SliderFloat3("Translate", reinterpret_cast<float*>(&airplanePosition), -1.0f, 1.0f);
     ImGui::SliderFloat3("Rotate", reinterpret_cast<float*>(&airplaneRotation), 0.0f, 359.0f);
+
+    // Scene Lighting
+    ImGui::SliderFloat("Ambient", reinterpret_cast<float*>(&ambientLight), 0.0f, 1.0f);
+    ImGui::SliderFloat3("Ambient Colour", reinterpret_cast<float*>(&ambientColour), 0.0f, 1.0f);
 
     ImGui::End();
 
@@ -378,4 +325,47 @@ int main(int argc, char** argv)
   glfwTerminate();
 
   return EXIT_SUCCESS;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+  glViewport(0, 0, width, height);
+}
+
+void mouse_callback(GLFWwindow* window, double xPosIn, double yPosIn)
+{
+  if (!mouseLocked) return;
+
+  float xPos = static_cast<float>(xPosIn);
+  float yPos = static_cast<float>(yPosIn);
+
+  if (firstMouse)
+  {
+    lastX = xPos;
+    lastY = yPos;
+    firstMouse = false;
+  }
+
+  float xOffset = xPos - lastX;
+  float yOffset = lastY - yPos;
+
+  lastX = xPos;
+  lastY = yPos;
+
+  camera.processMouseMovement(xOffset, yOffset);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+  // Close
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
+
+  // Mouse locked
+  if (key == GLFW_KEY_M && action == GLFW_PRESS) mouseLocked = !mouseLocked;
+
+  // Wireframe
+  if (key == GLFW_KEY_N && action == GLFW_PRESS) wireFrame = !wireFrame;
+
+  // Skybox
+  if (key == GLFW_KEY_B && action == GLFW_PRESS) useSkybox = !useSkybox;
 }
